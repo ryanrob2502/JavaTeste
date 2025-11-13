@@ -1,0 +1,13 @@
+com\uniruy\appuser\Consulta.class
+com\uniruy\appuser\Registro.class
+com\uniruy\appuser\SecurityConfig.class
+com\uniruy\appuser\AppUserApplication.class
+com\uniruy\appuser\PageController.class
+com\uniruy\appuser\Paciente.class
+com\uniruy\appuser\Dataloader.class
+com\uniruy\appuser\ConsultaRepository.class
+com\uniruy\appuser\PacienteRepository.class
+com\uniruy\appuser\EspecialidadeRepository.class
+com\uniruy\appuser\Especialidade.class
+com\uniruy\appuser\EmailService.class
+com\uniruy\appuser\RegistroRepository.class
