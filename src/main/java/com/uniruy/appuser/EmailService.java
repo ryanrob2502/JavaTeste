@@ -1,9 +1,14 @@
 package com.uniruy.appuser;
 
 import com.sendgrid.*;
+import com.sendgrid.helpers.mail.Mail;
+import com.sendgrid.helpers.mail.objects.Content;
+import com.sendgrid.helpers.mail.objects.Email;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
 
 @Service
 public class EmailService {
@@ -42,6 +47,12 @@ public class EmailService {
         enviarEmail(emailDestino, assunto, texto);
     }
 
+    // MÉTODO ADICIONADO PARA USAR NO PageController
+    @Async
+    public void sendEmail(String emailDestino, String assunto, String texto) {
+        enviarEmail(emailDestino, assunto, texto);
+    }
+
     private void enviarEmail(String emailDestino, String assunto, String texto) {
         try {
             Email from = new Email(EMAIL_ORIGEM);
@@ -57,7 +68,7 @@ public class EmailService {
 
             sendGrid.api(request);
 
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
