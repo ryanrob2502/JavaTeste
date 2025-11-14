@@ -12,10 +12,10 @@ public class EmailService {
     private final RestTemplate restTemplate = new RestTemplate();
     
     // SUAS CREDENCIAIS - SUBSTITUA COM AS SUAS
-    private static final String EMAILJS_SERVICE_ID = "service_xxxxxxxxx";
-    private static final String EMAILJS_TEMPLATE_ID = "template_xxxxxxxxx";
-    private static final String EMAILJS_PUBLIC_KEY = "sua_public_key_aqui";
-    private static final String EMAILJS_USER_ID = "seu_user_id_aqui";
+    private static final String EMAILJS_SERVICE_ID = "service_950grm9";
+    private static final String EMAILJS_TEMPLATE_ID = "template_0rfxsih";
+    private static final String EMAILJS_PUBLIC_KEY = "HtFNur5Q7vzDYN0TH";
+    private static final String EMAILJS_USER_ID = "HtFNur5Q7vzDYN0TH";
     private static final String EMAILJS_URL = "https://api.emailjs.com/api/v1.0/email/send";
 
     @Async
