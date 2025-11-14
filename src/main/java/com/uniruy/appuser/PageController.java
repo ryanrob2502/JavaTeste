@@ -525,6 +525,29 @@ public class PageController {
         }
     }
 
+    @PostMapping("/enviarCodigo")
+    public String enviarCodigo(Model model) {
+        try {
+            String emailDestino = "destinatario@gmail.com";  // altere como quiser
+            String codigo = "1234";                          // você depois troca por código real
+            String mensagem = "Seu código é: " + codigo;
+
+            emailService.sendEmail(
+                emailDestino,
+                "Código de Verificação",
+                mensagem
+            );
+
+            model.addAttribute("mensagem", "E-mail enviado com sucesso!");
+
+        } catch (Exception e) {
+            model.addAttribute("erro", "Erro ao enviar e-mail: " + e.getMessage());
+        }
+
+        return "paginaDeVerificacao"; // substitua pelo nome da sua página real
+    }
+
+
     @GetMapping("/api/consultas")
     @ResponseBody
     public ResponseEntity<?> getConsultasDoMes(
