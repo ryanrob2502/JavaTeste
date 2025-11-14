@@ -55,6 +55,9 @@ public class EmailService {
 
     private void enviarEmail(String emailDestino, String assunto, String texto) {
         try {
+            System.out.println("Tentando enviar email para: " + emailDestino);
+            System.out.println("Assunto: " + assunto);
+            
             Email from = new Email(EMAIL_ORIGEM);
             Email to = new Email(emailDestino);
             Content content = new Content("text/plain", texto);
@@ -66,9 +69,23 @@ public class EmailService {
             request.setEndpoint("mail/send");
             request.setBody(mail.build());
 
-            sendGrid.api(request);
+            // Adicione logs da resposta
+            Response response = sendGrid.api(request);
+            System.out.println("Status Code: " + response.getStatusCode());
+            System.out.println("Response Body: " + response.getBody());
+            System.out.println("Response Headers: " + response.getHeaders());
+
+            if (response.getStatusCode() >= 200 && response.getStatusCode() < 300) {
+                System.out.println("Email enviado com sucesso!");
+            } else {
+                System.out.println("Falha ao enviar email. Status: " + response.getStatusCode());
+            }
 
         } catch (IOException e) {
+            System.err.println("Erro IOException ao enviar email: " + e.getMessage());
+            e.printStackTrace();
+        } catch (Exception e) {
+            System.err.println("Erro geral ao enviar email: " + e.getMessage());
             e.printStackTrace();
         }
     }
