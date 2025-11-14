@@ -1,91 +1,76 @@
 package com.uniruy.appuser;
 
-import com.sendgrid.*;
-import com.sendgrid.helpers.mail.Mail;
-import com.sendgrid.helpers.mail.objects.Content;
-import com.sendgrid.helpers.mail.objects.Email;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-
-import java.io.IOException;
+import org.springframework.web.client.RestTemplate;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class EmailService {
 
-    @Autowired
-    private SendGrid sendGrid;
-
-    private static final String EMAIL_ORIGEM = "contato.medlinksistemamedico@gmail.com";
+    private final RestTemplate restTemplate = new RestTemplate();
+    
+    // SUAS CREDENCIAIS - SUBSTITUA COM AS SUAS
+    private static final String EMAILJS_SERVICE_ID = "service_xxxxxxxxx";
+    private static final String EMAILJS_TEMPLATE_ID = "template_xxxxxxxxx";
+    private static final String EMAILJS_PUBLIC_KEY = "sua_public_key_aqui";
+    private static final String EMAILJS_USER_ID = "seu_user_id_aqui";
+    private static final String EMAILJS_URL = "https://api.emailjs.com/api/v1.0/email/send";
 
     @Async
     public void enviarCodigoDeLogin(String emailDestino, String codigo) {
-        String assunto = "MedLink - Sua matricula de Acesso";
-        String texto = "Olá!\n\nObrigado por se registrar no MedLink.\n\nSeu código de acesso é: " + codigo
-                + "\n\nUse este código para fazer login no sistema.\n\nAtenciosamente,\nEquipe MedLink";
-
-        enviarEmail(emailDestino, assunto, texto);
+        enviarEmailEmailJS(emailDestino, "MedLink - Sua Matrícula de Acesso", 
+            "Olá!\\n\\nObrigado por se registrar no MedLink.\\n\\nSeu código de acesso é: " + codigo +
+            "\\n\\nUse este código para fazer login no sistema.\\n\\nAtenciosamente,\\nEquipe MedLink", codigo);
     }
 
     @Async
     public void enviarCodigoRedefinicaoSenha(String emailDestino, String codigo) {
-        String assunto = "MedLink - Código de Verificação";
-        String texto = "Olá!\n\nVocê solicitou a redefinição de senha.\n\nSeu código de verificação é: " + codigo
-                + "\n\nEste código é válido por 30 minutos.\n\nSe você não solicitou esta redefinição, ignore este e-mail."
-                + "\n\nAtenciosamente,\nEquipe MedLink";
-
-        enviarEmail(emailDestino, assunto, texto);
+        enviarEmailEmailJS(emailDestino, "MedLink - Código de Verificação", 
+            "Olá!\\n\\nVocê solicitou a redefinição de senha.\\n\\nSeu código de verificação é: " + codigo +
+            "\\n\\nEste código é válido por 30 minutos.\\n\\nAtenciosamente,\\nEquipe MedLink", codigo);
     }
 
-    @Async
-    public void enviarNovaSenha(String emailDestino, String novaSenha) {
-        String assunto = "MedLink - Sua Nova Senha Temporária";
-        String texto = "Olá!\n\nVocê solicitou uma nova senha.\n\nSua nova senha temporária é: " + novaSenha
-                + "\n\nPor favor, use-a para fazer login e altere sua senha imediatamente."
-                + "\n\nAtenciosamente,\nEquipe MedLink";
-
-        enviarEmail(emailDestino, assunto, texto);
-    }
-
-    // MÉTODO ADICIONADO PARA USAR NO PageController
     @Async
     public void sendEmail(String emailDestino, String assunto, String texto) {
-        enviarEmail(emailDestino, assunto, texto);
+        enviarEmailEmailJS(emailDestino, assunto, texto, "123456");
     }
 
-    private void enviarEmail(String emailDestino, String assunto, String texto) {
+    private void enviarEmailEmailJS(String emailDestino, String assunto, String texto, String codigo) {
         try {
-            System.out.println("Tentando enviar email para: " + emailDestino);
+            System.out.println("=== TENTANDO ENVIAR EMAIL VIA EMAILJS ===");
+            System.out.println("Para: " + emailDestino);
             System.out.println("Assunto: " + assunto);
+            System.out.println("Código: " + codigo);
+
+            // Preparar o corpo da requisição
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("service_id", EMAILJS_SERVICE_ID);
+            requestBody.put("template_id", EMAILJS_TEMPLATE_ID);
+            requestBody.put("user_id", EMAILJS_USER_ID);
             
-            Email from = new Email(EMAIL_ORIGEM);
-            Email to = new Email(emailDestino);
-            Content content = new Content("text/plain", texto);
+            // Parâmetros do template
+            Map<String, String> templateParams = new HashMap<>();
+            templateParams.put("to_email", emailDestino);
+            templateParams.put("subject", assunto);
+            templateParams.put("message", texto);
+            templateParams.put("codigo", codigo);
+            templateParams.put("from_name", "MedLink Sistema");
+            
+            requestBody.put("template_params", templateParams);
+            requestBody.put("accessToken", EMAILJS_PUBLIC_KEY);
 
-            Mail mail = new Mail(from, assunto, to, content);
-
-            Request request = new Request();
-            request.setMethod(Method.POST);
-            request.setEndpoint("mail/send");
-            request.setBody(mail.build());
-
-            // Adicione logs da resposta
-            Response response = sendGrid.api(request);
-            System.out.println("Status Code: " + response.getStatusCode());
-            System.out.println("Response Body: " + response.getBody());
-            System.out.println("Response Headers: " + response.getHeaders());
-
-            if (response.getStatusCode() >= 200 && response.getStatusCode() < 300) {
-                System.out.println("Email enviado com sucesso!");
-            } else {
-                System.out.println("Falha ao enviar email. Status: " + response.getStatusCode());
-            }
-
-        } catch (IOException e) {
-            System.err.println("Erro IOException ao enviar email: " + e.getMessage());
-            e.printStackTrace();
+            System.out.println("Enviando requisição para EmailJS...");
+            
+            // Fazer a requisição POST
+            String response = restTemplate.postForObject(EMAILJS_URL, requestBody, String.class);
+            
+            System.out.println("✅ RESPOSTA DO EMAILJS: " + response);
+            System.out.println("✅ EMAIL ENVIADO COM SUCESSO!");
+            
         } catch (Exception e) {
-            System.err.println("Erro geral ao enviar email: " + e.getMessage());
+            System.err.println("❌ ERRO AO ENVIAR EMAIL: " + e.getMessage());
             e.printStackTrace();
         }
     }
