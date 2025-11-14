@@ -525,28 +525,30 @@ public class PageController {
         }
     }
 
+    // MÉTODO CORRIGIDO - AGORA COM EMAIL DINÂMICO E CÓDIGO AUTOMÁTICO
+    @GetMapping("/enviarCodigo")
+    public String mostrarFormularioEnvioCodigo(Model model) {
+        return "pagina-envio-codigo";
+    }
+
     @PostMapping("/enviarCodigo")
-    public String enviarCodigo(Model model) {
+    public String enviarCodigo(@RequestParam("emailDestino") String emailDestino, Model model) {
         try {
-            String emailDestino = "destinatario@gmail.com";  // altere como quiser
-            String codigo = "1234";                          // você depois troca por código real
-            String mensagem = "Seu código é: " + codigo;
+            // Gera um código automático de 8 dígitos
+            String codigo = gerarCodigoDe8Digitos();
+            
+            // Envia o código para o email digitado pelo usuário
+            emailService.enviarCodigoDeLogin(emailDestino, codigo);
 
-            emailService.sendEmail(
-                emailDestino,
-                "Código de Verificação",
-                mensagem
-            );
-
-            model.addAttribute("mensagem", "E-mail enviado com sucesso!");
+            model.addAttribute("mensagem", "Código enviado com sucesso para: " + emailDestino);
+            model.addAttribute("email", emailDestino);
 
         } catch (Exception e) {
             model.addAttribute("erro", "Erro ao enviar e-mail: " + e.getMessage());
         }
 
-        return "paginaDeVerificacao"; // substitua pelo nome da sua página real
+        return "pagina-envio-codigo";
     }
-
 
     @GetMapping("/api/consultas")
     @ResponseBody
