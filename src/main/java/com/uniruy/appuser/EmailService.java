@@ -3,6 +3,9 @@ package com.uniruy.appuser;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,66 +14,66 @@ public class EmailService {
 
     private final RestTemplate restTemplate = new RestTemplate();
     
-    // SUAS CREDENCIAIS - SUBSTITUA COM AS SUAS
-    private static final String EMAILJS_SERVICE_ID = "service_950grm9";
-    private static final String EMAILJS_TEMPLATE_ID = "template_0rfxsih";
-    private static final String EMAILJS_PUBLIC_KEY = "HtFNur5Q7vzDYN0TH";
-    private static final String EMAILJS_USER_ID = "HtFNur5Q7vzDYN0TH";
-    private static final String EMAILJS_URL = "https://api.emailjs.com/api/v1.0/email/send";
+    // SUA CHAVE DO RESEND - substitua pela sua
+    private static final String RESEND_API_KEY = "re_EvptyiMR_MctkV6aHLRtnpRowcxr1pNQW";
+    private static final String RESEND_URL = "https://api.resend.com/emails";
+    private static final String FROM_EMAIL = "MedLink <contato.medlinksistemamedico@gmail.com>";
+    // Ou use o domínio de teste do Resend: "onboarding@resend.dev"
 
     @Async
     public void enviarCodigoDeLogin(String emailDestino, String codigo) {
-        enviarEmailEmailJS(emailDestino, "MedLink - Sua Matrícula de Acesso", 
-            "Olá!\\n\\nObrigado por se registrar no MedLink.\\n\\nSeu código de acesso é: " + codigo +
-            "\\n\\nUse este código para fazer login no sistema.\\n\\nAtenciosamente,\\nEquipe MedLink", codigo);
+        String assunto = "MedLink - Sua Matrícula de Acesso";
+        String texto = "Olá!\n\nObrigado por se registrar no MedLink.\n\nSeu código de acesso é: " + codigo
+                + "\n\nUse este código para fazer login no sistema.\n\nAtenciosamente,\nEquipe MedLink";
+
+        enviarEmailResend(emailDestino, assunto, texto);
     }
 
     @Async
     public void enviarCodigoRedefinicaoSenha(String emailDestino, String codigo) {
-        enviarEmailEmailJS(emailDestino, "MedLink - Código de Verificação", 
-            "Olá!\\n\\nVocê solicitou a redefinição de senha.\\n\\nSeu código de verificação é: " + codigo +
-            "\\n\\nEste código é válido por 30 minutos.\\n\\nAtenciosamente,\\nEquipe MedLink", codigo);
+        String assunto = "MedLink - Código de Verificação";
+        String texto = "Olá!\n\nVocê solicitou a redefinição de senha.\n\nSeu código de verificação é: " + codigo
+                + "\n\nEste código é válido por 30 minutos.\n\nAtenciosamente,\nEquipe MedLink";
+
+        enviarEmailResend(emailDestino, assunto, texto);
     }
 
     @Async
     public void sendEmail(String emailDestino, String assunto, String texto) {
-        enviarEmailEmailJS(emailDestino, assunto, texto, "123456");
+        enviarEmailResend(emailDestino, assunto, texto);
     }
 
-    private void enviarEmailEmailJS(String emailDestino, String assunto, String texto, String codigo) {
+    private void enviarEmailResend(String emailDestino, String assunto, String texto) {
         try {
-            System.out.println("=== TENTANDO ENVIAR EMAIL VIA EMAILJS ===");
+            System.out.println("=== TENTANDO ENVIAR EMAIL VIA RESEND ===");
             System.out.println("Para: " + emailDestino);
             System.out.println("Assunto: " + assunto);
-            System.out.println("Código: " + codigo);
 
-            // Preparar o corpo da requisição
+            // Configurar headers
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "Bearer " + RESEND_API_KEY);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            // Corpo da requisição
             Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("service_id", EMAILJS_SERVICE_ID);
-            requestBody.put("template_id", EMAILJS_TEMPLATE_ID);
-            requestBody.put("user_id", EMAILJS_USER_ID);
+            requestBody.put("from", FROM_EMAIL);
+            requestBody.put("to", new String[]{emailDestino});
+            requestBody.put("subject", assunto);
+            requestBody.put("text", texto);
             
-            // Parâmetros do template
-            Map<String, String> templateParams = new HashMap<>();
-            templateParams.put("to_email", emailDestino);
-            templateParams.put("subject", assunto);
-            templateParams.put("message", texto);
-            templateParams.put("codigo", codigo);
-            templateParams.put("from_name", "MedLink Sistema");
-            
-            requestBody.put("template_params", templateParams);
-            requestBody.put("accessToken", EMAILJS_PUBLIC_KEY);
+            // Para HTML (opcional):
+            // requestBody.put("html", "<strong>" + texto + "</strong>");
 
-            System.out.println("Enviando requisição para EmailJS...");
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+
+            // Enviar requisição
+            String response = restTemplate.postForObject(RESEND_URL, request, String.class);
             
-            // Fazer a requisição POST
-            String response = restTemplate.postForObject(EMAILJS_URL, requestBody, String.class);
-            
-            System.out.println("✅ RESPOSTA DO EMAILJS: " + response);
+            System.out.println("✅ RESPOSTA DO RESEND: " + response);
             System.out.println("✅ EMAIL ENVIADO COM SUCESSO!");
             
         } catch (Exception e) {
-            System.err.println("❌ ERRO AO ENVIAR EMAIL: " + e.getMessage());
+            System.err.println("❌ ERRO AO ENVIAR EMAIL VIA RESEND: " + e.getMessage());
             e.printStackTrace();
         }
     }
