@@ -14,11 +14,11 @@ public class EmailService {
 
     private final RestTemplate restTemplate = new RestTemplate();
     
-    // SUA CHAVE DO RESEND - substitua pela sua
+   
     private static final String RESEND_API_KEY = "re_EvptyiMR_MctkV6aHLRtnpRowcxr1pNQW";
     private static final String RESEND_URL = "https://api.resend.com/emails";
-    private static final String FROM_EMAIL = "MedLink <contato.medlinksistemamedico@gmail.com>";
-    // Ou use o domínio de teste do Resend: "onboarding@resend.dev"
+    private static final String FROM_EMAIL = "onboarding@resend.dev";
+    
 
     @Async
     public void enviarCodigoDeLogin(String emailDestino, String codigo) {
