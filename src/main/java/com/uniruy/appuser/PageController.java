@@ -123,7 +123,7 @@ public class PageController {
 
         registroRepository.save(usuario);
 
-        return "redirect:/login";
+        return "login";
     }
 
     
